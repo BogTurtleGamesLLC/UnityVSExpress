@@ -30,3 +30,5 @@ To install this application as your Unity editor:
 5. Make sure that by default .cs files are opened with the Visual Studio Express version you want.
 To do this, find a .cs file, right click on it, select Open with&#8594;Choose default program...
 Then select the version of Visual Studio Express that you are using for Unity scripts.
+
+If you like or use this application, feel free to check out [some of our games](http://www.bogturtlegames.com).
