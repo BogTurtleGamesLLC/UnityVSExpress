@@ -35,6 +35,13 @@ namespace UnityVSExpress {
         /// </summary>
         const int WaitSecondsBeforeGotoLine = 2;
 
+        /// <summary>
+        /// We would like to open the C# specific Unity project to avoid errors with Visual Studio Express.
+        /// Thanks to Giometric on the Unity forum.
+        /// Code derived from: http://forum.unity3d.com/threads/222633-Using-Visual-Studio-Express-with-Unity-instead-of-Mono-Develop?p=1487721&viewfull=1#post1487721
+        /// </summary>
+        const string SolutionEnding = "-csharp";
+
         static void Main( string[] args ) {
             // Default Visual Studio Express version to run is Visual C# Express 2010.
             const int DefaultVSExpressYear = 2010;
@@ -216,7 +223,7 @@ namespace UnityVSExpress {
         /// Locates a window that matches the Visual Studio Express window solution title.
         /// </summary>
         static IntPtr GetExpressSolutionHandle( string expressTitleEnding, DirectoryInfo unityRootDir ) {
-            string expressTitle = unityRootDir.Name + expressTitleEnding;
+            string expressTitle = unityRootDir.Name + SolutionEnding + expressTitleEnding;
             IntPtr handle = IntPtr.Zero;
             Process[] processes = Process.GetProcesses();
             foreach (Process p in processes) {
@@ -241,7 +248,7 @@ namespace UnityVSExpress {
             // Open the solution and script in Visual Studio Express.
             ProcessStartInfo psInfo = new ProcessStartInfo();
             psInfo.FileName = expressExePath + expressExe;
-            psInfo.Arguments = "\"" + unityRootDir.FullName + Path.DirectorySeparatorChar + unityRootDir.Name + ".sln\" \"" + scriptName + "\"";
+            psInfo.Arguments = "\"" + unityRootDir.FullName + Path.DirectorySeparatorChar + unityRootDir.Name + SolutionEnding + ".sln\" \"" + scriptName + "\"";
             Process.Start( psInfo );
         }
 
