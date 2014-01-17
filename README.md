@@ -31,4 +31,17 @@ To install this application as your Unity editor:
 To do this, find a .cs file, right click on it, select Open with&#8594;Choose default program...
 Then select the version of Visual Studio Express that you are using for Unity scripts.
 
+If you are having problems...
+-----------------------------
+
+1. From within Unity, select Assets&#8594;Sync MonoDevelop Project. Then try again.
+
+2. Close all instances of Visual Studio Express. Then try again.
+
+3. Recheck the syntax for the External Script Editor Args field.
+
+4. Make sure the External Script Editor Args field is specifying the Visual Studio Express year that you would like to run.
+
+5. Make sure that by default .cs files are opened with this same Visual Studio Express version.
+
 If you like or use this application, feel free to check out [some of our games](http://www.bogturtlegames.com).
