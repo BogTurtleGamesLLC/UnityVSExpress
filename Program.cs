@@ -258,7 +258,13 @@ namespace UnityVSExpress {
         static void OpenScript( string scriptName ) {
             // This assumes C# files are automatically opened by Visual Studio Express.
             // If we attempt to open them directly with Visual Studio Express, a new instance of the Express executable is created.
-            Process.Start( "\"" + scriptName + "\"" );
+            try {
+                Process.Start( "\"" + scriptName + "\"" );
+            }
+            catch (System.ComponentModel.Win32Exception e) {
+                // When you select Assets-->Sync MonoDevelop Project from Unity, it will call UnityVSExpress with invalid parameters.
+                // Make sure UnityVSExpress doesn't crash here when it does.
+            }
         }
 
         [DllImport( "user32.dll" )]
