@@ -64,9 +64,9 @@ namespace UnityVSExpress {
             }
 
             // Locate where the Visual Studio Express executable is.
-            string expressExePath = GetExpressExePath( GetVSVersion( vsExpressYear ), GetExpressRegistryKeyPath( vsExpressYear) );
+            string expressExePath = GetExpressExePath( GetVSVersion( vsExpressYear ), GetExpressRegistryKeyPath( vsExpressYear ) );
             string expressExe = GetExpressExe( vsExpressYear );
-            string expressTitleEnding = GetExpressTitleEnding( vsExpressYear );
+            string expressExeAbsolute = expressExePath + expressExe;
 
             DirectoryInfo unityRootDir = null;
             bool openScript = true;
@@ -76,7 +76,7 @@ namespace UnityVSExpress {
                 if (expressExePath != null) {
                     unityRootDir = GetUnityRootDir( arg );
                     if (unityRootDir != null) {
-                        if (!IsSolutionOpen( expressTitleEnding, unityRootDir )) {
+                        if (!IsSolutionOpen( expressExeAbsolute, unityRootDir )) {
                             OpenSolutionAndScript( expressExePath, expressExe, unityRootDir, arg );
                             // We have already opened the script so no need to do it again.
                             openScript = false;
@@ -99,7 +99,7 @@ namespace UnityVSExpress {
                             // As a hack, we just delay here a user-defined amount of time before sending the goto line command.
                             System.Threading.Thread.Sleep( WaitSecondsBeforeGotoLine * 1000 );
                         }
-                        GotoLineInSolution( expressTitleEnding, unityRootDir, line );
+                        GotoLineInSolution( expressExeAbsolute, unityRootDir, line );
                     }
                 }
             }
@@ -111,7 +111,7 @@ namespace UnityVSExpress {
         ///     9.0 (Visual Studio 9.0 or Visual C# Express 2008) - not tested
         ///     10.0 (Visual Studio 10.0 or Visual C# Express 2010)
         ///     11.0 (Visual Studio 11.0 or Windows Desktop Express 2012) - not tested
-        ///     12.0 (Visual Studio 12.0 or Windows Desktop Express 2013) - not tested
+        ///     12.0 (Visual Studio 12.0 or Windows Desktop Express 2013)
         /// </summary>
         static string GetVSVersion( int vsExpressYear ) {
             switch (vsExpressYear) {
@@ -187,24 +187,6 @@ namespace UnityVSExpress {
         }
 
         /// <summary>
-        /// Given a Visual Studio version, returns a Visual Studio Express title ending.
-        /// This name is used to detect open Visual Studio windows.
-        /// </summary>
-        static string GetExpressTitleEnding( int vsExpressYear ) {
-            const string VCSExpressTitleStart = @" - Microsoft Visual C# ";
-            const string VCSExpressTitleEnd = @" Express";
-            const string WDExpressTitleStart = @" - Microsoft Visual Studio Express ";
-            const string WDExpressTitleEnd = @" for Windows Desktop";
-
-            if (IsWDExpressYear( vsExpressYear )) {
-                return WDExpressTitleStart + vsExpressYear.ToString() + WDExpressTitleEnd;
-            }
-            else {
-                return VCSExpressTitleStart + vsExpressYear.ToString() + VCSExpressTitleEnd;
-            }
-        }
-
-        /// <summary>
         /// Determines the Unity project root directory from a script path.
         /// </summary>
         static DirectoryInfo GetUnityRootDir( string arg ) {
@@ -220,15 +202,19 @@ namespace UnityVSExpress {
         }
 
         /// <summary>
-        /// Locates a window that matches the Visual Studio Express window solution title.
+        /// Locates a window that matches the Visual Studio Express absolute file name.
+        /// This fixes a bug that makes UnityVSExpress not work on non-English versions of Windows.
+        /// Thanks to riks43 on the Unity forum.
+        /// Code derived from: http://pastebin.com/82UDJam0
         /// </summary>
-        static IntPtr GetExpressSolutionHandle( string expressTitleEnding, DirectoryInfo unityRootDir ) {
-            string expressTitle = unityRootDir.Name + SolutionEnding + expressTitleEnding;
+        static IntPtr GetExpressSolutionHandle( string expressExeAbsolute, DirectoryInfo unityRootDir ) {
             IntPtr handle = IntPtr.Zero;
             Process[] processes = Process.GetProcesses();
             foreach (Process p in processes) {
-                if (expressTitle == p.MainWindowTitle) {
-                    handle = p.MainWindowHandle;
+                if (p.MainWindowTitle.Contains( unityRootDir.Name )) {
+                    if (String.Equals( p.MainModule.FileName, expressExeAbsolute, StringComparison.OrdinalIgnoreCase )) {
+                        handle = p.MainWindowHandle;
+                    }
                 }
             }
             return handle;
@@ -237,8 +223,8 @@ namespace UnityVSExpress {
         /// <summary>
         /// Determines if a particular solution is already open in Visual Studio Express.
         /// </summary>
-        static bool IsSolutionOpen( string expressTitleEnding, DirectoryInfo unityRootDir ) {
-            return GetExpressSolutionHandle( expressTitleEnding, unityRootDir ) != IntPtr.Zero;
+        static bool IsSolutionOpen( string expressExeAbsolute, DirectoryInfo unityRootDir ) {
+            return GetExpressSolutionHandle( expressExeAbsolute, unityRootDir ) != IntPtr.Zero;
         }
 
         /// <summary>
@@ -274,8 +260,8 @@ namespace UnityVSExpress {
         /// <summary>
         /// Makes the active Visual Studio Express window goto a specific line by sending macro keys to it.
         /// </summary>
-        static void GotoLineInSolution( string expressTitleEnding, DirectoryInfo unityRootDir, int line ) {
-            IntPtr handle = GetExpressSolutionHandle( expressTitleEnding, unityRootDir );
+        static void GotoLineInSolution( string expressExeAbsolute, DirectoryInfo unityRootDir, int line ) {
+            IntPtr handle = GetExpressSolutionHandle( expressExeAbsolute, unityRootDir );
 
             if (handle == IntPtr.Zero) { return; }
 
